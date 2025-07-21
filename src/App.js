@@ -22,35 +22,6 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LoginIcon from '@mui/icons-material/Login';
 
-// Mock de modelos e versões por marca (deve ficar fora do App para escopo global)
-const modelosPorMarca = {
-  'Fiat': ['Argo', 'Pulse', 'Fiorino'],
-  'Chevrolet': ['Onix', 'Tracker', 'S10'],
-  'Volkswagen': ['Gol', 'T-Cross', 'Virtus'],
-  'Toyota': ['Corolla', 'Yaris', 'Hilux'],
-  'Honda': ['Civic', 'HR-V', 'Fit'],
-  'Ford': ['Ka', 'Ranger', 'EcoSport'],
-};
-const versoesPorModelo = {
-  'Argo': ['1.0', '1.3 Drive', 'Trekking'],
-  'Pulse': ['Drive', 'Audace', 'Impetus'],
-  'Fiorino': ['Endurance', 'Hard Working'],
-  'Onix': ['LT', 'LTZ', 'Premier'],
-  'Tracker': ['Turbo', 'Premier'],
-  'S10': ['LS', 'LT', 'High Country'],
-  'Gol': ['1.0', '1.6 MSI'],
-  'T-Cross': ['200 TSI', '250 TSI'],
-  'Virtus': ['Comfortline', 'Highline'],
-  'Corolla': ['GLi', 'XEi', 'Altis'],
-  'Yaris': ['XL', 'XS', 'XLS'],
-  'Hilux': ['SR', 'SRV', 'SRX'],
-  'Civic': ['Sport', 'EXL', 'Touring'],
-  'HR-V': ['EX', 'EXL', 'Touring'],
-  'Fit': ['DX', 'EX', 'EXL'],
-  'Ka': ['SE', 'SEL'],
-  'Ranger': ['XL', 'XLT', 'Limited'],
-  'EcoSport': ['SE', 'Storm'],
-};
 
 function App() {
   // Estado para marcas selecionadas (array de objetos: {nome, logo})
