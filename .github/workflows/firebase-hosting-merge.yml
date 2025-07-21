@@ -1,4 +1,8 @@
-# ... (resto do seu arquivo) ...
+name: firebase-hosting-merge.yml
+on: # <--- Procure por esta linha 'on:'
+  push:
+    branches:
+      - main # <--- Certifique-se de que isso esteja presente e correto
 
 jobs:
   build_and_deploy:
@@ -6,18 +10,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # --- COMEÇO DAS NOVAS ETAPAS ---
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # MUDE ESTE NÚMERO SE SEU PROJETO USA OUTRA VERSÃO DO NODE.JS (ex: '20' ou '22')
+          node-version: '18' # Mude para a versão do Node.js que seu projeto usa
 
       - name: Instalar dependências
-        run: npm ci # Ou 'npm install' se você preferir, mas 'npm ci' é recomendado para CI/CD
+        run: npm ci
 
       - name: Construir o projeto
-        run: npm run build # ESTE É O COMANDO QUE CRIA A PASTA 'build'
-      # --- FIM DAS NOVAS ETAPAS ---
+        run: npm run build
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -25,6 +27,3 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_GIROFIPE }}'
           projectId: girofipe
-          # ... (o resto das configurações do seu deploy) ...
-
-# ... (fim do seu arquivo) ...
