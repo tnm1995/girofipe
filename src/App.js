@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -160,6 +159,35 @@ function App() {
   const [showAllBrands, setShowAllBrands] = React.useState(false);
   const [brandSearch, setBrandSearch] = React.useState("");
 
+  // Estado do campo de busca
+  const [search, setSearch] = React.useState("");
+  // Estado do campo de localização (cidades selecionadas)
+  const [locations, setLocations] = React.useState([]);
+  const [locationInput, setLocationInput] = React.useState("");
+  // Estados para os inputs de preço
+  const [precoMin, setPrecoMin] = React.useState("");
+  const [precoMax, setPrecoMax] = React.useState("");
+  // Estados para filtro de ano
+  const [anoMin, setAnoMin] = React.useState("");
+  const [anoMax, setAnoMax] = React.useState("");
+  const [anoSelecionado, setAnoSelecionado] = React.useState(null);
+  const [anoMinError, setAnoMinError] = React.useState("");
+  const [anoMaxError, setAnoMaxError] = React.useState("");
+  // Adicione o estado para o filtro de final da placa
+  const [placaFinalFiltro, setPlacaFinalFiltro] = React.useState("");
+
+  // Ano atual para validação
+  const anoAtual = new Date().getFullYear();
+
+  // Função de validação de ano
+  function validateAno(value) {
+    if (!value) return "";
+    if (!/^[0-9]{1,4}$/.test(value)) return "Ano inválido";
+    const n = parseInt(value);
+    if (n < 1900 || n > anoAtual + 1) return "Ano inválido";
+    return "";
+  }
+
   function handleRemoverMarca(nome) {
     setMarcasSelecionadas(marcasSelecionadas.filter(m => m.nome !== nome));
   }
@@ -191,29 +219,6 @@ function App() {
     setOrderBy(option);
     setOrderAnchorEl(null);
   };
-
-  // Estados para os inputs de preço
-  const [precoMin, setPrecoMin] = React.useState("");
-  const [precoMax, setPrecoMax] = React.useState("");
-
-  // Estados para filtro de ano
-  const [anoMin, setAnoMin] = React.useState("");
-  const [anoMax, setAnoMax] = React.useState("");
-  const [anoSelecionado, setAnoSelecionado] = React.useState(null);
-  const [anoMinError, setAnoMinError] = React.useState("");
-  const [anoMaxError, setAnoMaxError] = React.useState("");
-
-  // Ano atual para validação
-  const anoAtual = new Date().getFullYear();
-
-  // Função de validação de ano
-  function validateAno(value) {
-    if (!value) return "";
-    if (!/^[0-9]{1,4}$/.test(value)) return "Ano inválido";
-    const n = parseInt(value);
-    if (n < 1900 || n > anoAtual + 1) return "Ano inválido";
-    return "";
-  }
 
   // Função para limpar todos os filtros controlados
   function handleClearAll() {
@@ -248,336 +253,6 @@ function App() {
     };
   }
 
-
-  // Estado do campo de busca
-  const [search, setSearch] = React.useState("");
-  // Estado do campo de localização (cidades selecionadas)
-  const [locations, setLocations] = React.useState([]);
-  const [locationInput, setLocationInput] = React.useState("");
-  // Lista de cidades/estados para autocomplete (mock)
-  const cityOptions = [
-    'São Paulo, SP',
-    'Curitiba, PR',
-    'Belo Horizonte, MG',
-    'Mineiros do Tietê - SP',
-    'Tietê - SP',
-    'Rio de Janeiro, RJ',
-    'Porto Alegre, RS',
-    'Salvador, BA',
-    'Fortaleza, CE',
-    'Brasília, DF',
-    'Campinas, SP',
-    'Santos, SP',
-    'Guarulhos, SP',
-    'Sorocaba, SP',
-    'São Bernardo do Campo, SP',
-    'Osasco, SP',
-    'Ribeirão Preto, SP',
-    'São José dos Campos, SP',
-    'Uberlândia, MG',
-    'Contagem, MG',
-    'Betim, MG',
-    'Juiz de Fora, MG',
-    'Joinville, SC',
-    'Florianópolis, SC',
-    'Blumenau, SC',
-    'Londrina, PR',
-    'Maringá, PR',
-    'Cascavel, PR',
-    'Recife, PE',
-    'Olinda, PE',
-    'Jaboatão dos Guararapes, PE',
-    'Natal, RN',
-    'João Pessoa, PB',
-    'Maceió, AL',
-    'Aracaju, SE',
-    'Belém, PA',
-    'Manaus, AM',
-    'Boa Vista, RR',
-    'Palmas, TO',
-    'Macapá, AP',
-    'Cuiabá, MT',
-    'Campo Grande, MS',
-    'Goiânia, GO',
-    'Anápolis, GO',
-    'Aparecida de Goiânia, GO',
-    'Vila Velha, ES',
-    'Vitória, ES',
-    'Caxias do Sul, RS',
-    'Pelotas, RS',
-    'Santa Maria, RS',
-    'Niterói, RJ',
-    'Duque de Caxias, RJ',
-    'Nova Iguaçu, RJ',
-    'São Gonçalo, RJ',
-    'Campos dos Goytacazes, RJ',
-    'Teresina, PI',
-    'São Luís, MA',
-    'Porto Velho, RO',
-    'Rio Branco, AC',
-    'Patos de Minas, MG',
-    'Franca, SP',
-    'Barueri, SP',
-    'Carapicuíba, SP',
-    'Itu, SP',
-    'Jundiaí, SP',
-    'Taubaté, SP',
-    'Marília, SP',
-    'Presidente Prudente, SP',
-    'São Carlos, SP',
-    'Piracicaba, SP',
-    'Bauru, SP',
-    'Araraquara, SP',
-    'Sertãozinho, SP',
-    'Americana, SP',
-    'Itapetininga, SP',
-    'Itapeva, SP',
-    'Ourinhos, SP',
-    'Avaré, SP',
-    'Botucatu, SP',
-    'Lençóis Paulista, SP',
-    'Jaú, SP',
-    'Assis, SP',
-    'Catanduva, SP',
-    'Votuporanga, SP',
-    'Fernandópolis, SP',
-    'Andradina, SP',
-    'Birigui, SP',
-    'Penápolis, SP',
-    'Lins, SP',
-    'Araçatuba, SP',
-    'Barretos, SP',
-    'Taquaritinga, SP',
-    'Matão, SP',
-    'Batatais, SP',
-    'Mococa, SP',
-    'Casa Branca, SP',
-    'São João da Boa Vista, SP',
-    'Mogi das Cruzes, SP',
-    'Suzano, SP',
-    'Poá, SP',
-    'Ferraz de Vasconcelos, SP',
-    'Itaquaquecetuba, SP',
-    'Guarujá, SP',
-    'Praia Grande, SP',
-    'São Vicente, SP',
-    'Cubatão, SP',
-    'Mauá, SP',
-    'Santo André, SP',
-    'São Caetano do Sul, SP',
-    'Diadema, SP',
-    'Taboão da Serra, SP',
-    'Embu das Artes, SP',
-    'Itapecerica da Serra, SP',
-    'Cotia, SP',
-    'Santana de Parnaíba, SP',
-    'Itapevi, SP',
-    'Jandira, SP',
-    'Vargem Grande Paulista, SP',
-    'Caieiras, SP',
-    'Franco da Rocha, SP',
-    'Francisco Morato, SP',
-    'Mairiporã, SP',
-    'Atibaia, SP',
-    'Bragança Paulista, SP',
-    'Extrema, MG',
-    'Pouso Alegre, MG',
-    'Itajubá, MG',
-    'Varginha, MG',
-    'Alfenas, MG',
-    'Passos, MG',
-    'Três Corações, MG',
-    'Lavras, MG',
-    'Sete Lagoas, MG',
-    'Divinópolis, MG',
-    'Itaúna, MG',
-    'Pará de Minas, MG',
-    'Formiga, MG',
-    'Araxá, MG',
-    'Patrocínio, MG',
-    'Uberaba, MG',
-    'Arapiraca, AL',
-    'Caruaru, PE',
-    'Petrolina, PE',
-    'Cabo de Santo Agostinho, PE',
-    'Paulista, PE',
-    'Camaragibe, PE',
-    'Garanhuns, PE',
-    'Santa Cruz do Capibaribe, PE',
-    'Serra Talhada, PE',
-    'Vitória de Santo Antão, PE',
-    'Gravatá, PE',
-    'Palmeira dos Índios, AL',
-    'Rio Largo, AL',
-    'Parnamirim, RN',
-    'Mossoró, RN',
-    'Caucaia, CE',
-    'Maracanaú, CE',
-    'Sobral, CE',
-    'Juazeiro do Norte, CE',
-    'Crato, CE',
-    'Iguatu, CE',
-    'Quixadá, CE',
-    'Russas, CE',
-    'Itapipoca, CE',
-    'Canindé, CE',
-    'Pacatuba, CE',
-    'Aquiraz, CE',
-    'Maranguape, CE',
-    'Horizonte, CE',
-    'Eusébio, CE',
-    'Pacajus, CE',
-    'Redenção, CE',
-    'Baturité, CE',
-    'Guaraciaba do Norte, CE',
-    'Tianguá, CE',
-    'Crateús, CE',
-    'Fortim, CE',
-    'Aracati, CE',
-    'Icapuí, CE',
-    'Beberibe, CE',
-    'Canoa Quebrada, CE',
-    'Jericoacoara, CE',
-    'Camocim, CE',
-    'Paracuru, CE',
-    'Itarema, CE',
-    'Acaraú, CE',
-    'Barbalha, CE',
-    'Icó, CE',
-    'Limoeiro do Norte, CE',
-    'Morada Nova, CE',
-    'Quixeramobim, CE',
-    'Boa Viagem, CE',
-    'Tauá, CE',
-    'Senador Pompeu, CE',
-    'Mombaça, CE',
-    'Solonópole, CE',
-    'Milhã, CE',
-    'Quixelô, CE',
-    'Jucás, CE',
-    'Cariús, CE',
-    'Várzea Alegre, CE',
-    'Cedro, CE',
-    'Lavras da Mangabeira, CE',
-    'Aurora, CE',
-    'Missão Velha, CE',
-    'Barro, CE',
-    'Brejo Santo, CE',
-    'Mauriti, CE',
-    'Penaforte, CE',
-    'Jardim, CE',
-    'Altaneira, CE',
-    'Nova Olinda, CE',
-    'Santana do Cariri, CE',
-    'Assaré, CE',
-    'Potengi, CE',
-    'Araripe, CE',
-    'Salitre, CE',
-    'Campos Sales, CE',
-    'Antonina do Norte, CE',
-    'Tarrafas, CE',
-    'Farias Brito, CE',
-    'Caririaçu, CE',
-    'Granjeiro, CE',
-    'Jati, CE',
-    'Abaiara, CE',
-    'Porteiras, CE',
-  ].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-  // Lista de veículos (mock)
-  // Adicione um campo 'location' para cada veículo
-  const vehicles = [
-    {
-      brand: 'MITSUBISHI',
-      model: 'PAJERO SPORT',
-      year: '2025',
-      km: '0',
-      price: '426990',
-      displayPrice: 'R$ 426.990',
-      location: 'São Paulo, SP',
-      photo: 'https://www.autocerto.com/fotos/3291/1399791/1.jpg',
-    },
-    {
-      brand: 'RENAULT',
-      model: 'OROCH',
-      year: '2025',
-      km: '0',
-      price: '126690',
-      displayPrice: 'R$ 126.690',
-      location: 'Curitiba, PR',
-      photo: 'https://images.usadosbr.com/manipulatedImages/media/gallery/be/12/78/renault-duster-oroch-1-6-dynamique-18-2022-belo-horizonte-mg-9eef514b-0g--0-image-760x570-crop.webp',
-    },
-    {
-      brand: 'RENAULT',
-      model: 'KARDIAN',
-      year: '2025',
-      km: '0',
-      price: '145990',
-      displayPrice: 'R$ 145.990',
-      location: 'Belo Horizonte, MG',
-      photo: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjcFNkAuEFUePsHSQtE5HEe_V5IR6CIdr7HOIqFOzA9b4iD8bxRbiGyizhgw9zAXDAbLK2xuF2R3bUzG7K3-0YLvxAFhvjqwKe6X6zuTAa9z4sk1RD-iV7dH_kAuFcPaPzagYAEQIjh1id-ViY7nh5P7pxAur8zAwqnwyc_FZcIZxybumLk2tamz9nau70b/s2560/Renault-Kardian-Premier-2025%20%287%29.JPG',
-    },
-    {
-      brand: 'FIAT',
-      model: 'FIORINO',
-      year: '2023/2024',
-      km: '39.329',
-      price: '94900',
-      displayPrice: 'R$ 94.900',
-      location: 'São Paulo, SP',
-      photo: 'https://www.autocerto.com/fotos/1853/1391391/15.jpg',
-    },
-    {
-      brand: 'TOYOTA',
-      model: 'COROLLA',
-      year: '2022',
-      km: '25.000',
-      price: '115000',
-      displayPrice: 'R$ 115.000',
-      location: 'Porto Alegre, RS',
-      photo: 'https://image.webmotors.com.br/_fotos/anunciousados/gigante/2025/202507/20250721/toyota-corolla-2-0-vvtie-flex-altis-direct-shift-wmimagem04412094632.webp?s=fill&w=552&h=414&q=60',
-    },
-    {
-      brand: 'HYUNDAI',
-      model: 'CRETA',
-      year: '2021/2022',
-      km: '76.609',
-      price: '103.990',
-      displayPrice: 'R$ 103.990',
-      location: 'Jaú, SP',
-      photo: 'https://image.webmotors.com.br/_fotos/anunciousados/gigante/2025/202506/20250623/hyundai-creta-1.0-tgdi-flex-limited-automatico-wmimagem11300347734.jpg?s=fill&w=552&h=414&q=60',
-    },
-    {
-      brand: 'FORD',
-      model: 'MUSTANG',
-      year: '2023/2024',
-      km: '25.000',
-      price: '549.000',
-      displayPrice: 'R$ 549.000',
-      location: 'Curitiba, PR',
-      photo: 'https://image.webmotors.com.br/_fotos/anunciousados/gigante/2025/202507/20250721/ford-mustang-5.0-v8-gasolina-gt-performance-manual-wmimagem01374175836.jpg?s=fill&w=552&h=414&q=60',
-    },
-     {
-      brand: 'HONDA',
-      model: 'FIT',
-      year: '2016/2016',
-      km: '95.001',
-      price: '51.990',
-      displayPrice: 'R$ 51.990',
-      location: 'Americana, SP',
-      photo: 'https://image.webmotors.com.br/_fotos/anunciousados/gigante/2025/202506/20250615/honda-fit-1.5-lx-16v-flex-4p-automatico-wmimagem04440034121.jpg?s=fill&w=552&h=414&q=60',
-    },
-     {
-      brand: 'CHEVROLET',
-      model: 'ONIX',
-      year: '2022/2023',
-      km: '54.700',
-      price: '71.900',
-      displayPrice: 'R$ 71.900',
-      location: 'Florianópolis, SC',
-      photo: 'https://image.webmotors.com.br/_fotos/anunciousados/gigante/2025/202506/20250603/chevrolet-onix-1.0-turbo-flex-lt-manual-wmimagem22082151826.jpg?s=fill&w=552&h=414&q=60',
-    },
-  ];
 
   // Filtro de busca, localização e ano
   let filteredVehicles = vehicles.filter(v => {
@@ -621,7 +296,17 @@ function App() {
       if (!isNaN(max) && price > max) matchesPreco = false;
     }
 
-    return matchesSearch && matchesLocation && matchesMarca && matchesAno && matchesPreco;
+    // Filtro por final da placa (se o campo existir no veículo)
+    let matchesPlaca = true;
+    if (placaFinalFiltro) {
+      if (v.placa && v.placa.length > 0) {
+        matchesPlaca = v.placa[v.placa.length - 1] === placaFinalFiltro;
+      } else {
+        matchesPlaca = false;
+      }
+    }
+
+    return matchesSearch && matchesLocation && matchesMarca && matchesAno && matchesPreco && matchesPlaca;
   });
 
   // Ordenação dos veículos conforme selecionado
@@ -1353,7 +1038,34 @@ function App() {
             { label: 'Câmbio', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Manual</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Automático</label></Box> },
             { label: 'Cor', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Preto</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Branco</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Prata</label></Box> },
             { label: 'Combustível', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Gasolina</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Diesel</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Flex</label></Box> },
-            { label: 'Final da placa', content: <Box sx={{ p: 0, mb: 2 }}><input type="number" min="0" max="9" placeholder="0-9" style={{ width: '100%', padding: '10px', borderRadius: 6, border: '1px solid #e0e0e0', marginBottom: 0 }} /></Box> },
+            { label: 'Final da placa', content: (
+              <Box sx={{ p: 0, mb: 2 }}>
+                <Select
+                  displayEmpty
+                  value={placaFinalFiltro}
+                  onChange={e => setPlacaFinalFiltro(e.target.value)}
+                  sx={{
+                    width: '100%',
+                    borderRadius: 2,
+                    bgcolor: '#fafbfc',
+                    fontSize: 15,
+                    color: '#222',
+                    '.MuiOutlinedInput-notchedOutline': { border: '1px solid #e0e0e0' },
+                    height: 40,
+                    mt: 1, // Espaço acima
+                    mb: 0.5, // Espaço abaixo
+                    // px: 1, // Removido para não estourar a largura
+                  }}
+                  inputProps={{ 'aria-label': 'Final da placa' }}
+                  renderValue={selected => selected === '' ? '0-9' : selected}
+                >
+                  <MenuItem value="">0-9</MenuItem>
+                  {[...Array(10).keys()].map(n => (
+                    <MenuItem key={n} value={n.toString()}>{n}</MenuItem>
+                  ))}
+                </Select>
+              </Box>
+            ) },
             { label: 'Blindagem', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Sim</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Não</label></Box> },
             { label: 'Carroceria', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Sedan</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Hatch</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> SUV</label></Box> },
               
@@ -1631,3 +1343,20 @@ function FadeMenu() {
     </div>
   );
 }
+
+// Lista de veículos (mock)
+const vehicles = [
+  // ...coloque aqui os objetos de veículos já existentes...
+];
+
+// Lista de cidades para o autocomplete
+const cityOptions = [
+  // Exemplo de cidades, adicione conforme necessário
+  'São Paulo, SP',
+  'Curitiba, PR',
+  'Belo Horizonte, MG',
+  'Porto Alegre, RS',
+  'Jaú, SP',
+  'Americana, SP',
+  'Florianópolis, SC',
+];
