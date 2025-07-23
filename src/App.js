@@ -229,35 +229,6 @@ function App() {
   }
 
 
-// Novo componente para botão do menu principal
-function MenuButton({ text, active }) {
-  return (
-    <Button
-      sx={{
-        color: active ? 'black' : '#1D89FF',
-        mx: 0.1,
-        textTransform: 'none',
-        minWidth: 50,
-        fontWeight: 500,
-        fontSize: 16,
-        background: 'none',
-        borderBottom: active ? '2px solid #1D89FF' : '2px solid transparent',
-        borderRadius: 0,
-        transition: 'color 0.2s, border-bottom 0.2s',
-        '&:hover': {
-          color: 'black',
-          borderBottom: '2px solid #1D89FF',
-          background: 'none',
-        },
-      }}
-    >
-      {text}
-    </Button>
-  );
-}
-
-
-
   // Estado do campo de busca
   const [search, setSearch] = React.useState("");
   // Estado do campo de localização (cidades selecionadas)
