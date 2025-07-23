@@ -29,3 +29,4 @@ jobs:
           projectId: girofipe
           channelId: live # <--- Adicione/descomente esta linha
           # expires: 7d # Você pode remover esta linha se estiver deployando para 'live'
+          
