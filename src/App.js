@@ -20,9 +20,111 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LoginIcon from '@mui/icons-material/Login';
+import Pagination from '@mui/material/Pagination';
+import Contato from './contato';
+import { Routes, Route } from 'react-router-dom';
 
 
 function App() {
+  // Limpa todos os filtros
+  function handleClearAll() {
+    setCategoriaSelecionada('todos');
+    setLocations([]);
+    setLocationInput("");
+    setPrecoMin("");
+    setPrecoMax("");
+    setAnoMin("");
+    setAnoMax("");
+    setAnoSelecionado(null);
+    setMarcasSelecionadas([]);
+    // Adicione outros resets de filtros conforme necessário
+  }
+
+  // Formata valor para R$ 99.999
+  function formatReal(valor) {
+    if (!valor) return "";
+    let v = valor.toString().replace(/\D/g, "");
+    v = (parseInt(v, 10) || 0).toLocaleString('pt-BR');
+    return v ? `R$ ${v}` : "";
+  }
+
+  // Handler para inputs de preço
+  function handlePrecoChange(setState) {
+    return (e) => {
+      let v = e.target.value.replace(/\D/g, "");
+      setState(v);
+    };
+  }
+  // Modelos e versões por marca/modelo
+  const modelosPorMarca = {
+    "Chevrolet": ['Onix', 'Tracker', 'S10', 'Spin', 'Cruze', 'Montana', 'Equinox'],
+    "Fiat": ['Argo', 'Pulse', 'Toro', 'Strada', 'Mobi', 'Cronos', 'Fastback'],
+    "Ford": ['Ranger', 'Ka', 'EcoSport', 'Territory', 'Fusion', 'Mustang'],
+    "Honda": ['Civic', 'HR-V', 'City', 'Fit', 'WR-V'],
+    "Hyundai": ['HB20', 'Creta', 'Tucson', 'Santa Fe', 'Azera'],
+    "Mitsubishi": ['Pajero Sport', 'L200 Triton', 'ASX', 'Outlander'],
+    "Renault": ['Kardian', 'Oroch', 'Duster', 'Kwid', 'Captur', 'Sandero'],
+    "Toyota": ['Corolla', 'Hilux', 'Yaris', 'SW4', 'RAV4'],
+    "Volkswagen": ['T-Cross', 'Nivus', 'Polo', 'Virtus', 'Saveiro', 'Taos'],
+    "Jeep": ['Compass', 'Renegade', 'Commander', 'Wrangler'],
+    "Nissan": ['Kicks', 'Frontier', 'Versa', 'Sentra'],
+    "Peugeot": ['208', '2008', '3008', 'Partner'],
+    "Citroën": ['C3', 'C4 Cactus', 'Aircross'],
+    "Kia": ['Sportage', 'Cerato', 'Seltos', 'Stonic'],
+    "BMW": ['320i', 'X1', 'X3', 'X5', 'Z4'],
+    "Mercedes-Benz": ['GLA', 'GLC', 'Classe C', 'Classe A'],
+    "Audi": ['A3', 'Q3', 'Q5', 'A4'],
+    "Land Rover": ['Range Rover Evoque', 'Discovery Sport', 'Defender'],
+    "Volvo": ['XC40', 'XC60', 'XC90', 'S60'],
+    "Chery": ['Tiggo 5X', 'Tiggo 8', 'Arrizo 6'],
+    "Ram": ['1500', '2500', 'Classic'],
+    "JAC": ['T40', 'T50', 'E-JS1'],
+    "Subaru": ['XV', 'Forester', 'Outback'],
+    "Suzuki": ['Jimny', 'Vitara', 'S-Cross'],
+    "Mini": ['Cooper', 'Countryman'],
+    "Porsche": ['911', 'Cayenne', 'Macan'],
+    "Lexus": ['UX 250h', 'NX 350h', 'ES 300h'],
+    "Jaguar": ['E-Pace', 'F-Pace', 'XE'],
+    "Dodge": ['Ram 2500', 'Durango', 'Journey'],
+    "BYD": ['Song Plus', 'Yuan Plus', 'Dolphin'],
+    "Tesla": ['Model 3', 'Model Y', 'Model S']
+  };
+
+  const versoesPorModelo = {
+    "C3": ['Live', 'Feel', 'First Edition'],
+    "C4 Cactus": ['Live', 'Feel', 'Shine'],
+    "Sportage": ['EX', 'LX', 'SX'],
+    "320i": ['GP', 'Sport GP', 'M Sport'],
+    "GLA": ['200', '250', 'AMG 35'],
+    "A3": ['Sedan Prestige', 'Sedan Performance', 'Sportback'],
+    "Q3": ['Prestige', 'Performance', 'Black'],
+    "Range Rover Evoque": ['SE', 'R-Dynamic', 'HSE'],
+    "XC40": ['Momentum', 'Inscription', 'R-Design'],
+    "Tiggo 5X": ['TXS', 'T', 'PRO'],
+    "1500": ['Laramie', 'Limited', 'Rebel'],
+    "T40": ['Plus', 'JetFlex'],
+    "XV": ['AWD', 'S'],
+    "Jimny": ['4Work', '4Sport', 'Sierra'],
+    "Cooper": ['S', 'John Cooper Works'],
+    "911": ['Carrera', 'Turbo S'],
+    "UX 250h": ['Dynamic', 'Luxury'],
+    "E-Pace": ['S', 'SE', 'HSE'],
+    "Ram 2500": ['Laramie', 'Limited'],
+    "Song Plus": ['GL', 'GS'],
+    "Model 3": ['Standard', 'Long Range', 'Performance']
+    // ...adicione mais conforme necessário...
+  };
+  // Paginação
+  const [paginaAtual, setPaginaAtual] = React.useState(1);
+  const itensPorPagina = 9;
+  // Sempre começa a exibir a partir da terceira linha (índice 2)
+  const inicio = (paginaAtual - 1) * itensPorPagina;
+  const fim = inicio + itensPorPagina;
+
+  // Estado para categoria selecionada
+  const [categoriaSelecionada, setCategoriaSelecionada] = React.useState('todos');
+  // Estado de aberto/fechado para cada filtro expansivo
+  const [openFilters, setOpenFilters] = React.useState({});
   // Estado para marcas selecionadas (array de objetos: {nome, logo})
   const [marcasSelecionadas, setMarcasSelecionadas] = React.useState([]);
 
@@ -60,98 +162,10 @@ function App() {
     { nome: 'BYD', logo: 'logobyd.png' },
     { nome: 'Tesla', logo: 'logotesla.png' },
   ];
-  // Modelos por marca (atualizado)
-  const modelosPorMarca = {
-    'Chevrolet': ['Onix', 'Tracker', 'S10', 'Spin', 'Cruze', 'Montana', 'Equinox'],
-    'Fiat': ['Argo', 'Pulse', 'Toro', 'Strada', 'Mobi', 'Cronos', 'Fastback'],
-    'Ford': ['Ranger', 'Ka', 'EcoSport', 'Territory', 'Fusion', 'Mustang'],
-    'Honda': ['Civic', 'HR-V', 'City', 'Fit', 'WR-V'],
-    'Hyundai': ['HB20', 'Creta', 'Tucson', 'Santa Fe', 'Azera'],
-    'Mitsubishi': ['Pajero Sport', 'L200 Triton', 'ASX', 'Outlander'],
-    'Renault': ['Kardian', 'Oroch', 'Duster', 'Kwid', 'Captur', 'Sandero'],
-    'Toyota': ['Corolla', 'Hilux', 'Yaris', 'SW4', 'RAV4'],
-    'Volkswagen': ['T-Cross', 'Nivus', 'Polo', 'Virtus', 'Saveiro', 'Taos'],
-    'Jeep': ['Compass', 'Renegade', 'Commander', 'Wrangler'],
-    'Nissan': ['Kicks', 'Frontier', 'Versa', 'Sentra'],
-    'Peugeot': ['208', '2008', '3008', 'Partner'],
-    'Citroën': ['C3', 'C4 Cactus', 'Aircross'],
-    'Kia': ['Sportage', 'Cerato', 'Seltos', 'Stonic'],
-    'BMW': ['320i', 'X1', 'X3', 'X5', 'Z4'],
-    'Mercedes-Benz': ['GLA', 'GLC', 'Classe C', 'Classe A'],
-    'Audi': ['A3', 'Q3', 'Q5', 'A4'],
-    'Land Rover': ['Range Rover Evoque', 'Discovery Sport', 'Defender'],
-    'Volvo': ['XC40', 'XC60', 'XC90', 'S60'],
-    'Chery': ['Tiggo 5X', 'Tiggo 8', 'Arrizo 6'],
-    'Ram': ['1500', '2500', 'Classic'],
-    'JAC': ['T40', 'T50', 'E-JS1'],
-    'Subaru': ['XV', 'Forester', 'Outback'],
-    'Suzuki': ['Jimny', 'Vitara', 'S-Cross'],
-    'Mini': ['Cooper', 'Countryman'],
-    'Porsche': ['911', 'Cayenne', 'Macan'],
-    'Lexus': ['UX 250h', 'NX 350h', 'ES 300h'],
-    'Jaguar': ['E-Pace', 'F-Pace', 'XE'],
-    'Dodge': ['Ram 2500', 'Durango', 'Journey'],
-    'BYD': ['Song Plus', 'Yuan Plus', 'Dolphin'],
-    'Tesla': ['Model 3', 'Model Y', 'Model S'],
-  };
 
-  // Versões por modelo (atualizado)
-  const versoesPorModelo = {
-    'Onix': ['LT 1.0', 'LTZ 1.0 Turbo', 'Premier 1.0 Turbo'],
-    'Tracker': ['LT', 'LTZ', 'Premier'],
-    'S10': ['Advantage', 'LT', 'High Country'],
-    'Argo': ['Drive 1.0', 'Trekking 1.3', 'Precision 1.8'],
-    'Pulse': ['Drive', 'Audace', 'Impetus'],
-    'Toro': ['Endurance', 'Freedom', 'Volcano'],
-    'Ranger': ['XL', 'XLT', 'Limited'],
-    'Ka': ['SE 1.0', 'SE Plus 1.5', 'Titanium 1.5'],
-    'EcoSport': ['SE', 'FreeStyle', 'Titanium'],
-    'Civic': ['EX', 'EXL', 'Touring'],
-    'HR-V': ['EX', 'EXL', 'Touring'],
-    'City': ['EX', 'EXL', 'Touring'],
-    'Fit': ['DX', 'EX', 'EXL'],
-    'HB20': ['Sense', 'Vision', 'Evolution'],
-    'Creta': ['Action', 'Limited', 'Platinum'],
-    'Tucson': ['GLS', 'Limited', 'Ultimate'],
-    'Pajero Sport': ['HPE', 'HPE-S', 'Legend'],
-    'L200 Triton': ['GL', 'GLS', 'HPE'],
-    'Kardian': ['Evolution', 'Techno', 'Premiere'],
-    'Oroch': ['Pro', 'Intense', 'Outsider'],
-    'Duster': ['Zen', 'Intense', 'Iconic'],
-    'Corolla': ['GLi', 'XEi', 'Altis'],
-    'Hilux': ['SR', 'SRV', 'SRX'],
-    'T-Cross': ['Sense', 'Comfortline', 'Highline'],
-    'Nivus': ['Comfortline', 'Highline'],
-    'Compass': ['Sport', 'Longitude', 'Limited'],
-    'Renegade': ['Sport', 'Longitude', 'Trailhawk'],
-    'Commander': ['Limited', 'Overland'],
-    'Kicks': ['Active', 'Advance', 'Exclusive'],
-    'Frontier': ['S', 'Attack', 'XE', 'Platinum'],
-    '208': ['Like', 'Active', 'Griffe'],
-    '2008': ['Allure', 'Griffe', 'Style'],
-    'C3': ['Live', 'Feel', 'First Edition'],
-    'C4 Cactus': ['Live', 'Feel', 'Shine'],
-    'Sportage': ['EX', 'LX', 'SX'],
-    '320i': ['GP', 'Sport GP', 'M Sport'],
-    'GLA': ['200', '250', 'AMG 35'],
-    'A3': ['Sedan Prestige', 'Sedan Performance', 'Sportback'],
-    'Q3': ['Prestige', 'Performance', 'Black'],
-    'Range Rover Evoque': ['SE', 'R-Dynamic', 'HSE'],
-    'XC40': ['Momentum', 'Inscription', 'R-Design'],
-    'Tiggo 5X': ['TXS', 'T', 'PRO'],
-    '1500': ['Laramie', 'Limited', 'Rebel'],
-    'T40': ['Plus', 'JetFlex'],
-    'XV': ['AWD', 'S'],
-    'Jimny': ['4Work', '4Sport', 'Sierra'],
-    'Cooper': ['S', 'John Cooper Works'],
-    '911': ['Carrera', 'Turbo S'],
-    'UX 250h': ['Dynamic', 'Luxury'],
-    'E-Pace': ['S', 'SE', 'HSE'],
-    'Ram 2500': ['Laramie', 'Limited'],
-    'Song Plus': ['GL', 'GS'],
-    'Model 3': ['Standard', 'Long Range', 'Performance'],
-    // ...adicione mais conforme necessário...
-  };
+
+  // ...existing code...
+  // (Removido bloco duplicado e corrigido vírgulas)
 
   // Adicionar mais uma marca (abre grid de seleção)
   const [adicionandoMarca, setAdicionandoMarca] = React.useState(false);
@@ -159,34 +173,7 @@ function App() {
   const [showAllBrands, setShowAllBrands] = React.useState(false);
   const [brandSearch, setBrandSearch] = React.useState("");
 
-  // Estado do campo de busca
-  const [search, setSearch] = React.useState("");
-  // Estado do campo de localização (cidades selecionadas)
-  const [locations, setLocations] = React.useState([]);
-  const [locationInput, setLocationInput] = React.useState("");
-  // Estados para os inputs de preço
-  const [precoMin, setPrecoMin] = React.useState("");
-  const [precoMax, setPrecoMax] = React.useState("");
-  // Estados para filtro de ano
-  const [anoMin, setAnoMin] = React.useState("");
-  const [anoMax, setAnoMax] = React.useState("");
-  const [anoSelecionado, setAnoSelecionado] = React.useState(null);
-  const [anoMinError, setAnoMinError] = React.useState("");
-  const [anoMaxError, setAnoMaxError] = React.useState("");
-  // Adicione o estado para o filtro de final da placa
-  const [placaFinalFiltro, setPlacaFinalFiltro] = React.useState("");
 
-  // Ano atual para validação
-  const anoAtual = new Date().getFullYear();
-
-  // Função de validação de ano
-  function validateAno(value) {
-    if (!value) return "";
-    if (!/^[0-9]{1,4}$/.test(value)) return "Ano inválido";
-    const n = parseInt(value);
-    if (n < 1900 || n > anoAtual + 1) return "Ano inválido";
-    return "";
-  }
 
   function handleRemoverMarca(nome) {
     setMarcasSelecionadas(marcasSelecionadas.filter(m => m.nome !== nome));
@@ -220,105 +207,539 @@ function App() {
     setOrderAnchorEl(null);
   };
 
-  // Função para limpar todos os filtros controlados
-  function handleClearAll() {
-    setSearch("");
-    setLocations([]);
-    setPrecoMin("");
-    setPrecoMax("");
-    setAnoMin("");
-    setAnoMax("");
-    setAnoSelecionado(null);
-    // Adicione aqui outros filtros controlados por estado se necessário
-  }
+  // Estados para os inputs de preço
+  const [precoMin, setPrecoMin] = React.useState("");
+  const [precoMax, setPrecoMax] = React.useState("");
 
-  // Função para formatar como moeda Real sem centavos
-  function formatReal(value) {
+  // Estados para filtro de ano
+  const [anoMin, setAnoMin] = React.useState("");
+  const [anoMax, setAnoMax] = React.useState("");
+  const [anoSelecionado, setAnoSelecionado] = React.useState(null);
+  const [anoMinError, setAnoMinError] = React.useState("");
+  const [anoMaxError, setAnoMaxError] = React.useState("");
+
+  // Ano atual para validação
+  const anoAtual = new Date().getFullYear();
+
+  // Função de validação de ano
+  function validateAno(value) {
     if (!value) return "";
-    // Remove tudo que não for número
-    let clean = value.replace(/\D/g, "");
-    // Remove zeros à esquerda
-    clean = clean.replace(/^0+/, "");
-    if (clean === "") clean = "0";
-    // Formata milhar
-    let int = clean.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    return `R$ ${int}`;
+    if (!/^[0-9]{1,4}$/.test(value)) return "Ano inválido";
+    const n = parseInt(value);
+    if (n < 1900 || n > anoAtual + 1) return "Ano inválido";
+    return "";
   }
 
-  // Função para tratar input e manter só números
-  function handlePrecoChange(setValue) {
-    return (e) => {
-      let val = e.target.value.replace(/\D/g, "");
-      setValue(val);
-    };
-  }
+
+// Novo componente para botão do menu principal
+function MenuButton({ text, active }) {
+  return (
+    <Button
+      sx={{
+        color: active ? 'black' : '#1D89FF',
+        mx: 0.1,
+        textTransform: 'none',
+        minWidth: 50,
+        fontWeight: 500,
+        fontSize: 16,
+        background: 'none',
+        borderBottom: active ? '2px solid #1D89FF' : '2px solid transparent',
+        borderRadius: 0,
+        transition: 'color 0.2s, border-bottom 0.2s',
+        '&:hover': {
+          color: 'black',
+          borderBottom: '2px solid #1D89FF',
+          background: 'none',
+        },
+      }}
+    >
+      {text}
+    </Button>
+  );
+}
+
+
+
+  // Estado do campo de busca
+  const [search, setSearch] = React.useState("");
+  // Estado do campo de localização (cidades selecionadas)
+  const [locations, setLocations] = React.useState([]);
+  const [locationInput, setLocationInput] = React.useState("");
+  // Lista de cidades/estados para autocomplete (mock)
+  const cityOptions = [
+    'São Paulo, SP',
+    'Curitiba, PR',
+    'Belo Horizonte, MG',
+    'Mineiros do Tietê - SP',
+    'Tietê - SP',
+    'Rio de Janeiro, RJ',
+    'Porto Alegre, RS',
+    'Salvador, BA',
+    'Fortaleza, CE',
+    'Brasília, DF',
+    'Campinas, SP',
+    'Santos, SP',
+    'Guarulhos, SP',
+    'Sorocaba, SP',
+    'São Bernardo do Campo, SP',
+    'Osasco, SP',
+    'Ribeirão Preto, SP',
+    'São José dos Campos, SP',
+    'Uberlândia, MG',
+    'Contagem, MG',
+    'Betim, MG',
+    'Juiz de Fora, MG',
+    'Joinville, SC',
+    'Florianópolis, SC',
+    'Blumenau, SC',
+    'Londrina, PR',
+    'Maringá, PR',
+    'Cascavel, PR',
+    'Recife, PE',
+    'Olinda, PE',
+    'Jaboatão dos Guararapes, PE',
+    'Natal, RN',
+    'João Pessoa, PB',
+    'Maceió, AL',
+    'Aracaju, SE',
+    'Belém, PA',
+    'Manaus, AM',
+    'Boa Vista, RR',
+    'Palmas, TO',
+    'Macapá, AP',
+    'Cuiabá, MT',
+    'Campo Grande, MS',
+    'Goiânia, GO',
+    'Anápolis, GO',
+    'Aparecida de Goiânia, GO',
+    'Vila Velha, ES',
+    'Vitória, ES',
+    'Caxias do Sul, RS',
+    'Pelotas, RS',
+    'Santa Maria, RS',
+    'Niterói, RJ',
+    'Duque de Caxias, RJ',
+    'Nova Iguaçu, RJ',
+    'São Gonçalo, RJ',
+    'Campos dos Goytacazes, RJ',
+    'Teresina, PI',
+    'São Luís, MA',
+    'Porto Velho, RO',
+    'Rio Branco, AC',
+    'Patos de Minas, MG',
+    'Franca, SP',
+    'Barueri, SP',
+    'Carapicuíba, SP',
+    'Itu, SP',
+    'Jundiaí, SP',
+    'Taubaté, SP',
+    'Marília, SP',
+    'Presidente Prudente, SP',
+    'São Carlos, SP',
+    'Piracicaba, SP',
+    'Bauru, SP',
+    'Araraquara, SP',
+    'Sertãozinho, SP',
+    'Americana, SP',
+    'Itapetininga, SP',
+    'Itapeva, SP',
+    'Ourinhos, SP',
+    'Avaré, SP',
+    'Botucatu, SP',
+    'Lençóis Paulista, SP',
+    'Jaú, SP',
+    'Assis, SP',
+    'Catanduva, SP',
+    'Votuporanga, SP',
+    'Fernandópolis, SP',
+    'Andradina, SP',
+    'Birigui, SP',
+    'Penápolis, SP',
+    'Lins, SP',
+    'Araçatuba, SP',
+    'Barretos, SP',
+    'Taquaritinga, SP',
+    'Matão, SP',
+    'Batatais, SP',
+    'Mococa, SP',
+    'Casa Branca, SP',
+    'São João da Boa Vista, SP',
+    'Mogi das Cruzes, SP',
+    'Suzano, SP',
+    'Poá, SP',
+    'Ferraz de Vasconcelos, SP',
+    'Itaquaquecetuba, SP',
+    'Guarujá, SP',
+    'Praia Grande, SP',
+    'São Vicente, SP',
+    'Cubatão, SP',
+    'Mauá, SP',
+    'Santo André, SP',
+    'São Caetano do Sul, SP',
+    'Diadema, SP',
+    'Taboão da Serra, SP',
+    'Embu das Artes, SP',
+    'Itapecerica da Serra, SP',
+    'Cotia, SP',
+    'Santana de Parnaíba, SP',
+    'Itapevi, SP',
+    'Jandira, SP',
+    'Vargem Grande Paulista, SP',
+    'Caieiras, SP',
+    'Franco da Rocha, SP',
+    'Francisco Morato, SP',
+    'Mairiporã, SP',
+    'Atibaia, SP',
+    'Bragança Paulista, SP',
+    'Extrema, MG',
+    'Pouso Alegre, MG',
+    'Itajubá, MG',
+    'Varginha, MG',
+    'Alfenas, MG',
+    'Passos, MG',
+    'Três Corações, MG',
+    'Lavras, MG',
+    'Sete Lagoas, MG',
+    'Divinópolis, MG',
+    'Itaúna, MG',
+    'Pará de Minas, MG',
+    'Formiga, MG',
+    'Araxá, MG',
+    'Patrocínio, MG',
+    'Uberaba, MG',
+    'Arapiraca, AL',
+    'Caruaru, PE',
+    'Petrolina, PE',
+    'Cabo de Santo Agostinho, PE',
+    'Paulista, PE',
+    'Camaragibe, PE',
+    'Garanhuns, PE',
+    'Santa Cruz do Capibaribe, PE',
+    'Serra Talhada, PE',
+    'Vitória de Santo Antão, PE',
+    'Gravatá, PE',
+    'Palmeira dos Índios, AL',
+    'Rio Largo, AL',
+    'Parnamirim, RN',
+    'Mossoró, RN',
+    'Caucaia, CE',
+    'Maracanaú, CE',
+    'Sobral, CE',
+    'Juazeiro do Norte, CE',
+    'Crato, CE',
+    'Iguatu, CE',
+    'Quixadá, CE',
+    'Russas, CE',
+    'Itapipoca, CE',
+    'Canindé, CE',
+    'Pacatuba, CE',
+    'Aquiraz, CE',
+    'Maranguape, CE',
+    'Horizonte, CE',
+    'Eusébio, CE',
+    'Pacajus, CE',
+    'Redenção, CE',
+    'Baturité, CE',
+    'Guaraciaba do Norte, CE',
+    'Tianguá, CE',
+    'Crateús, CE',
+    'Fortim, CE',
+    'Aracati, CE',
+    'Icapuí, CE',
+    'Beberibe, CE',
+    'Canoa Quebrada, CE',
+    'Jericoacoara, CE',
+    'Camocim, CE',
+    'Paracuru, CE',
+    'Itarema, CE',
+    'Acaraú, CE',
+    'Barbalha, CE',
+    'Icó, CE',
+    'Limoeiro do Norte, CE',
+    'Morada Nova, CE',
+    'Quixeramobim, CE',
+    'Boa Viagem, CE',
+    'Tauá, CE',
+    'Senador Pompeu, CE',
+    'Mombaça, CE',
+    'Solonópole, CE',
+    'Milhã, CE',
+    'Quixelô, CE',
+    'Jucás, CE',
+    'Cariús, CE',
+    'Várzea Alegre, CE',
+    'Cedro, CE',
+    'Lavras da Mangabeira, CE',
+    'Aurora, CE',
+    'Missão Velha, CE',
+    'Barro, CE',
+    'Brejo Santo, CE',
+    'Mauriti, CE',
+    'Penaforte, CE',
+    'Jardim, CE',
+    'Altaneira, CE',
+    'Nova Olinda, CE',
+    'Santana do Cariri, CE',
+    'Assaré, CE',
+    'Potengi, CE',
+    'Araripe, CE',
+    'Salitre, CE',
+    'Campos Sales, CE',
+    'Antonina do Norte, CE',
+    'Tarrafas, CE',
+    'Farias Brito, CE',
+    'Caririaçu, CE',
+    'Granjeiro, CE',
+    'Jati, CE',
+    'Abaiara, CE',
+    'Porteiras, CE',
+  ].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  // Lista de veículos (mock)
+  // Adicione um campo 'location' para cada veículo
+  // Adicione a propriedade 'category' em cada veículo conforme necessário no seu array real
+  // Lista de veículos (mock)
+  // Adicione um campo 'location' para cada veículo
+  // Adicione a propriedade 'category' em cada veículo conforme necessário no seu array real
+  const vehicles = [
+    {
+      brand: 'FIAT',
+      model: 'DUCATO MAXI',
+      year: '2020/2021',
+      km: '65.000',
+      price: '159.900',
+      displayPrice: 'R$ 159.900',
+      location: 'São Paulo, SP',
+      photo: 'https://http2.mlstatic.com/D_NQ_NP_931559-MLB81117243956_122024-O.webp',
+      category: 'utilitario',
+    },
+    {
+      brand: 'RENAULT',
+      model: 'MASTER FURGÃO',
+      year: '2019/2020',
+      km: '80.000',
+      price: '139.000',
+      displayPrice: 'R$ 139.000',
+      location: 'Curitiba, PR',
+      photo: 'https://i.ytimg.com/vi/XlJQG008vlA/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDv4cd5XF2DFP4wpy6HgluSSkW4HQ',
+      category: 'utilitario',
+    },
+    {
+      brand: 'PEUGEOT',
+      model: 'BOXER',
+      year: '2018/2019',
+      km: '110.000',
+      price: '119.900',
+      displayPrice: 'R$ 119.900',
+      location: 'Belo Horizonte, MG',
+      photo: 'https://d2e5b8shawuel2.cloudfront.net/vehicle/303316/hrv/original.jpg',
+      category: 'utilitario',
+    },
+    {
+      brand: 'TOYOTA',
+      model: 'HILUX SW4',
+      year: '2022/2023',
+      km: '18.000',
+      price: '349.900',
+      displayPrice: 'R$ 349.900',
+      location: 'Campo Grande, MS',
+      photo: 'https://s3.amazonaws.com/altimus2.arquivos.prod/cfdd9211-1690-4ff4-ae9a-f7bb4685aa9b/fotos/veiculo/f35432e0a71e4abab93c4e912133f8e2_1704456610429.jpg',
+      category: 'caminhonete',
+    },
+    {
+      brand: 'CHEVROLET',
+      model: 'S10 HIGH COUNTRY',
+      year: '2021/2022',
+      km: '27.500',
+      price: '219.000',
+      displayPrice: 'R$ 219.000',
+      location: 'Ribeirão Preto, SP',
+      photo: 'https://cloudfront-us-east-1.images.arcpublishing.com/estadao/PSQQQY4SKVPZRC4OOWDUMGIYOI.jpg',
+      category: 'caminhonete',
+    },
+    {
+      brand: 'FORD',
+      model: 'RANGER LIMITED',
+      year: '2020/2021',
+      km: '45.000',
+      price: '189.900',
+      displayPrice: 'R$ 189.900',
+      location: 'Goiânia, GO',
+      photo: 'https://s3.ecompletocarros.dev/images/lojas/375/veiculos/147808/veiculoInfoVeiculoImagesMobile/vehicle_image_1685687539_d41d8cd98f00b204e9800998ecf8427e.jpeg',
+      category: 'caminhonete',
+    },
+    {
+      brand: 'FORD',
+      model: 'MUSTANG',
+      year: '2023/2024',
+      km: '25.000',
+      price: '549.000',
+      displayPrice: 'R$ 549.000',
+      location: 'Curitiba, PR',
+      photo: 'https://image.webmotors.com.br/_fotos/anunciousados/gigante/2025/202507/20250721/ford-mustang-5.0-v8-gasolina-gt-performance-manual-wmimagem01374175836.jpg?s=fill&w=552&h=414&q=60',
+      category: 'carro',
+    },
+    {
+      brand: 'HONDA',
+      model: 'FIT',
+      year: '2016/2016',
+      km: '95.001',
+      price: '51.990',
+      displayPrice: 'R$ 51.990',
+      location: 'Americana, SP',
+      photo: 'https://image.webmotors.com.br/_fotos/anunciousados/gigante/2025/202506/20250615/honda-fit-1.5-lx-16v-flex-4p-automatico-wmimagem04440034121.jpg?s=fill&w=552&h=414&q=60',
+      category: 'carro',
+    },
+    {
+      brand: 'CHEVROLET',
+      model: 'ONIX',
+      year: '2022/2023',
+      km: '54.700',
+      price: '71.900',
+      displayPrice: 'R$ 71.900',
+      location: 'Florianópolis, SC',
+      photo: 'https://image.webmotors.com.br/_fotos/anunciousados/gigante/2025/202506/20250603/chevrolet-onix-1.0-turbo-flex-lt-manual-wmimagem22082151826.jpg?s=fill&w=552&h=414&q=60',
+      category: 'carro',
+    },
+    {
+      brand: 'HONDA',
+      model: 'CG 160 FAN',
+      year: '2022',
+      km: '8000',
+      location: 'São Paulo, SP',
+      price: '13900',
+      displayPrice: 'R$ 13.900',
+      photo: 'https://www.comprecar.com.br/storage/vehicles/big/7d8503d6-07e2-4c52-bd45-87623f32e067.webp',
+      category: 'moto',
+    },
+    {
+      brand: 'VOLVO',
+      model: 'FH 540',
+      year: '2021',
+      km: '120000',
+      location: 'Curitiba, PR',
+      displayPrice: 'R$ 650.000',
+      photo: 'https://i.ytimg.com/vi/TC9VTj1uptA/sddefault.jpg',
+      category: 'caminhao',
+    },
+    {
+      brand: 'JOHN DEERE',
+      model: '5078E',
+      year: '2023',
+      km: '300',
+      location: 'Londrina, PR',
+      displayPrice: 'R$ 280.000',
+      photo: 'https://images.caminhoesecarretas.com.br/cliente_006385/veiculos/1259997_518a5caa-b8d5-484d-8b33-91fe76d83ff4_big.jpeg',
+      category: 'maquina',
+    },
+    // Adicionando mais exemplos
+    {
+      brand: 'FIAT',
+      model: 'ARGO',
+      year: '2021/2022',
+      km: '32.000',
+      price: '68.900',
+      displayPrice: 'R$ 68.900',
+      location: 'Belo Horizonte, MG',
+      photo: 'https://s2-autoesporte.glbimg.com/qlEyLX1-XyAc84DYiLNwDGgAQXY=/0x0:1600x1060/888x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_cf9d035bf26b4646b105bd958f32089d/internal_photos/bs/2021/i/A/rXpAQpTxKLsxjrJVOCXA/dsc-9646.jpg',
+      category: 'carro',
+    },
+    {
+      brand: 'YAMAHA',
+      model: 'FACTOR 150',
+      year: '2020',
+      km: '15.000',
+      price: '12.500',
+      displayPrice: 'R$ 12.500',
+      location: 'Recife, PE',
+      photo: 'https://noticiassobreautomovel.com.br/wp-content/uploads/2023/12/Yamaha-Factor-150-1024x768.jpg',
+      category: 'moto',
+    },
+    {
+      brand: 'SCANIA',
+      model: 'R 440',
+      year: '2019',
+      km: '350.000',
+      price: '420.000',
+      displayPrice: 'R$ 420.000',
+      location: 'Porto Alegre, RS',
+      photo: 'https://www3.dicave.com.br/wp-content/uploads/2024/09/48eb08a2-77b7-4f62-b79e-7173c5ff7d57.jpg',
+      category: 'caminhao',
+    },
+    {
+      brand: 'CASE',
+      model: '580N',
+      year: '2018',
+      km: '2.100',
+      price: '195.000',
+      displayPrice: 'R$ 195.000',
+      location: 'Goiânia, GO',
+      photo: 'https://portovelhomaquinas.com.br/wp-content/uploads/2024/10/WhatsApp-Image-2024-10-10-at-14.05.05-2.jpeg',
+      category: 'maquina',
+    },
+  ];
 
 
   // Filtro de busca, localização e ano
-  let filteredVehicles = vehicles.filter(v => {
-    const searchTerm = search.trim().toLowerCase();
-    // Filtro por busca (marca/modelo)
-    const matchesSearch = !searchTerm ||
-      v.brand.toLowerCase().includes(searchTerm) ||
-      v.model.toLowerCase().includes(searchTerm);
+let filteredVehicles = vehicles.filter(v => {
+  // Filtro por categoria (case-insensitive, aceita plural e sem acento)
+  const normalizeCat = str => (str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  const catSelected = normalizeCat(categoriaSelecionada);
+  const catVehicle = normalizeCat(v.category);
+  const matchesCategoria = catSelected === 'todos' || catSelected === catVehicle;
 
-    // Filtro por localização (múltiplas cidades, ignora acentos e espaços)
-    const normalize = str => (str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, ' ').trim();
-    const matchesLocation =
-      locations.length === 0 ||
-      locations.some(loc => normalize(v.location) === normalize(loc));
+  // Filtro por busca (marca/modelo)
+  const searchTerm = search.trim().toLowerCase();
+  const matchesSearch = !searchTerm ||
+    v.brand.toLowerCase().includes(searchTerm) ||
+    v.model.toLowerCase().includes(searchTerm);
 
-    // Filtro por marca selecionada (se houver)
-    const marcasSelecionadasLower = marcasSelecionadas.map(m => m.nome.toLowerCase());
-    const matchesMarca = marcasSelecionadas.length === 0 || marcasSelecionadasLower.includes(v.brand.toLowerCase());
+  // Filtro por localização (múltiplas cidades, ignora acentos e espaços)
+  const normalize = str => (str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, ' ').trim();
+  const matchesLocation =
+    locations.length === 0 ||
+    locations.some(loc => normalize(v.location) === normalize(loc));
 
-    // Filtro por ano
-    // Considera apenas o primeiro ano se for "2023/2024"
-    const getYear = y => parseInt((y || '').split('/')[0]);
-    const year = getYear(v.year);
-    let matchesAno = true;
-    if (anoSelecionado) {
-      matchesAno = year === anoSelecionado;
-    } else {
-      if (anoMin && year < parseInt(anoMin)) matchesAno = false;
-      if (anoMax && year > parseInt(anoMax)) matchesAno = false;
-    }
+  // Filtro por marca selecionada (se houver)
+  const marcasSelecionadasLower = marcasSelecionadas.map(m => m.nome.toLowerCase());
+  const matchesMarca = marcasSelecionadas.length === 0 || marcasSelecionadasLower.includes(v.brand.toLowerCase());
 
-    // Filtro por preço mínimo e máximo
-    const price = parseInt((v.price || '').toString().replace(/\D/g, ''));
-    let matchesPreco = true;
-    if (precoMin) {
-      const min = parseInt(precoMin.replace(/\D/g, ''));
-      if (!isNaN(min) && price < min) matchesPreco = false;
-    }
-    if (precoMax) {
-      const max = parseInt(precoMax.replace(/\D/g, ''));
-      if (!isNaN(max) && price > max) matchesPreco = false;
-    }
+  // Filtro por ano (considera apenas o primeiro ano se for "2023/2024")
+  const getYear = y => parseInt((y || '').split('/')[0]);
+  const year = getYear(v.year);
+  let matchesAno = true;
+  if (anoSelecionado) {
+    matchesAno = year === anoSelecionado;
+  } else {
+    if (anoMin && year < parseInt(anoMin)) matchesAno = false;
+    if (anoMax && year > parseInt(anoMax)) matchesAno = false;
+  }
 
-    // Filtro por final da placa (se o campo existir no veículo)
-    let matchesPlaca = true;
-    if (placaFinalFiltro) {
-      if (v.placa && v.placa.length > 0) {
-        matchesPlaca = v.placa[v.placa.length - 1] === placaFinalFiltro;
-      } else {
-        matchesPlaca = false;
-      }
-    }
+  // Filtro por preço mínimo e máximo
+  const price = parseInt((v.price || '').toString().replace(/\D/g, ''));
+  let matchesPreco = true;
+  if (precoMin) {
+    const min = parseInt(precoMin.replace(/\D/g, ''));
+    if (!isNaN(min) && price < min) matchesPreco = false;
+  }
+  if (precoMax) {
+    const max = parseInt(precoMax.replace(/\D/g, ''));
+    if (!isNaN(max) && price > max) matchesPreco = false;
+  }
 
-    return matchesSearch && matchesLocation && matchesMarca && matchesAno && matchesPreco && matchesPlaca;
-  });
+  return matchesCategoria && matchesSearch && matchesLocation && matchesMarca && matchesAno && matchesPreco;
+});
 
-  // Ordenação dos veículos conforme selecionado
-  filteredVehicles = [...filteredVehicles];
-  switch (orderBy) {
-    case 'Maior preço':
-      filteredVehicles.sort((a, b) => {
-        // Suporta preço com ponto ou string
-        const priceA = parseInt((a.price || '').toString().replace(/\D/g, ''));
-        const priceB = parseInt((b.price || '').toString().replace(/\D/g, ''));
-        return priceB - priceA;
-      });
+// Ordenação dos veículos conforme selecionado
+filteredVehicles = [...filteredVehicles];
+switch (orderBy) {
+  case 'Maior preço':
+    filteredVehicles.sort((a, b) => {
+      // Suporta preço com ponto ou string
+      const priceA = parseInt((a.price || '').toString().replace(/\D/g, ''));
+      const priceB = parseInt((b.price || '').toString().replace(/\D/g, ''));
+      return priceB - priceA;
+    });
       break;
     case 'Menor preço':
       filteredVehicles.sort((a, b) => {
@@ -343,6 +764,14 @@ function App() {
     default:
       break;
   }
+  // Paginação: exibe apenas os veículos da página atual, começando do início
+  const totalPaginas = Math.max(1, Math.ceil(filteredVehicles.length / itensPorPagina));
+  const vehiclesPaginados = filteredVehicles.slice(inicio, fim);
+
+  // Exemplo de paginação (renderize vehiclesPaginados no lugar de filteredVehicles)
+  // Para navegação:
+  // <Pagination count={totalPaginas} page={paginaAtual} onChange={(e, value) => setPaginaAtual(value)} />
+
   return (
     <>
       <AppBar position="fixed" elevation={0} sx={{ bgcolor: '#fff', boxShadow: 'none', borderBottom: '1px solid #e0e0e0' }}>
@@ -356,8 +785,8 @@ function App() {
           </Typography>
           <Box sx={{ position: 'absolute', left: '50%', top: 0, height: '100%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
             <MenuButton text="Início" active={false} />
-            <FadeMenu />
-            <MenuButton text="Contato" active={false} />
+            <FadeMenu setCategoriaSelecionada={setCategoriaSelecionada} />
+            <MenuButton text="Contato" active={false} onClick={() => window.location.href = '/contato'} />
             {/* Campo de busca */}
             <Box sx={{ ml: 3, width: 320, position: 'relative', display: { xs: 'none', sm: 'block' } }}>
               <input
@@ -589,7 +1018,17 @@ function App() {
                 </Box>
               </Box>
             ) },
-            { label: 'Categoria', content: <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', p: 0, mb: 2 }}><Button variant="contained" sx={{ bgcolor: '#1D89FF', color: '#fff', fontWeight: 500, textTransform: 'none', boxShadow: 'none', borderRadius: 2 }}>Carros</Button><Button variant="outlined" sx={{ color: '#1D89FF', borderColor: '#1D89FF', textTransform: 'none', borderRadius: 2 }}>Motos</Button><Button variant="outlined" sx={{ color: '#1D89FF', borderColor: '#1D89FF', textTransform: 'none', borderRadius: 2 }}>Caminhonetes</Button><Button variant="outlined" sx={{ color: '#1D89FF', borderColor: '#1D89FF', textTransform: 'none', borderRadius: 2 }}>Utilitários</Button><Button variant="outlined" sx={{ color: '#1D89FF', borderColor: '#1D89FF', textTransform: 'none', borderRadius: 2 }}>Caminhões</Button><Button variant="outlined" sx={{ color: '#1D89FF', borderColor: '#1D89FF', textTransform: 'none', borderRadius: 2 }}>Máquinas</Button></Box> },
+            { label: 'Categoria', content: (
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', p: 0, mb: 2 }}>
+                <Button variant={categoriaSelecionada === 'carro' ? 'contained' : 'outlined'} sx={{ bgcolor: categoriaSelecionada === 'carro' ? '#1D89FF' : '#fff', color: categoriaSelecionada === 'carro' ? '#fff' : '#1D89FF', borderColor: '#1D89FF', fontWeight: 500, textTransform: 'none', boxShadow: 'none', borderRadius: 2 }} onClick={() => setCategoriaSelecionada('carro')}>Carros</Button>
+                <Button variant={categoriaSelecionada === 'moto' ? 'contained' : 'outlined'} sx={{ bgcolor: categoriaSelecionada === 'moto' ? '#1D89FF' : '#fff', color: categoriaSelecionada === 'moto' ? '#fff' : '#1D89FF', borderColor: '#1D89FF', fontWeight: 500, textTransform: 'none', boxShadow: 'none', borderRadius: 2 }} onClick={() => setCategoriaSelecionada('moto')}>Motos</Button>
+                <Button variant={categoriaSelecionada === 'caminhonete' ? 'contained' : 'outlined'} sx={{ bgcolor: categoriaSelecionada === 'caminhonete' ? '#1D89FF' : '#fff', color: categoriaSelecionada === 'caminhonete' ? '#fff' : '#1D89FF', borderColor: '#1D89FF', fontWeight: 500, textTransform: 'none', boxShadow: 'none', borderRadius: 2 }} onClick={() => setCategoriaSelecionada('caminhonete')}>Caminhonetes</Button>
+                <Button variant={categoriaSelecionada === 'utilitario' ? 'contained' : 'outlined'} sx={{ bgcolor: categoriaSelecionada === 'utilitario' ? '#1D89FF' : '#fff', color: categoriaSelecionada === 'utilitario' ? '#fff' : '#1D89FF', borderColor: '#1D89FF', fontWeight: 500, textTransform: 'none', boxShadow: 'none', borderRadius: 2 }} onClick={() => setCategoriaSelecionada('utilitario')}>Utilitários</Button>
+                <Button variant={categoriaSelecionada === 'caminhao' ? 'contained' : 'outlined'} sx={{ bgcolor: categoriaSelecionada === 'caminhao' ? '#1D89FF' : '#fff', color: categoriaSelecionada === 'caminhao' ? '#fff' : '#1D89FF', borderColor: '#1D89FF', fontWeight: 500, textTransform: 'none', boxShadow: 'none', borderRadius: 2 }} onClick={() => setCategoriaSelecionada('caminhao')}>Caminhões</Button>
+                <Button variant={categoriaSelecionada === 'maquina' ? 'contained' : 'outlined'} sx={{ bgcolor: categoriaSelecionada === 'maquina' ? '#1D89FF' : '#fff', color: categoriaSelecionada === 'maquina' ? '#fff' : '#1D89FF', borderColor: '#1D89FF', fontWeight: 500, textTransform: 'none', boxShadow: 'none', borderRadius: 2 }} onClick={() => setCategoriaSelecionada('maquina')}>Máquinas</Button>
+                <Button variant={categoriaSelecionada === 'todos' ? 'contained' : 'outlined'} sx={{ bgcolor: categoriaSelecionada === 'todos' ? '#1D89FF' : '#fff', color: categoriaSelecionada === 'todos' ? '#fff' : '#1D89FF', borderColor: '#1D89FF', fontWeight: 500, textTransform: 'none', boxShadow: 'none', borderRadius: 2 }} onClick={() => setCategoriaSelecionada('todos')}>Todos veículos</Button>
+              </Box>
+            ) },
             { label: 'Marca', content: (
               <Box sx={{ p: 0, mb: 2 }}>
                 {/* Cards das marcas selecionadas */}
@@ -1034,61 +1473,86 @@ function App() {
               </Box>
             ) }, 
             { label: 'Quilometragem', content: <Box sx={{ display: 'flex', gap: 1, p: 0, mb: 2 }}><input type="number" min="0" placeholder="Mínima" style={{ width: '45%', padding: '10px', borderRadius: 6, border: '1px solid #e0e0e0', marginBottom: 0 }} /><span style={{ alignSelf: 'center', color: '#888' }}>-</span><input type="number" min="0" placeholder="Máxima" style={{ width: '45%', padding: '10px', borderRadius: 6, border: '1px solid #e0e0e0', marginBottom: 0 }} /></Box> },
-            { label: 'Itens do veículo', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Airbag</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> ABS</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Ar-condicionado</label></Box> },
-            { label: 'Câmbio', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Manual</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Automático</label></Box> },
-            { label: 'Cor', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Preto</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Branco</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Prata</label></Box> },
-            { label: 'Combustível', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Gasolina</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Diesel</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Flex</label></Box> },
+{ label: 'Itens do veículo', content: (
+  <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Airbag</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> ABS</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Ar-condicionado</label>
+  </Box>
+) },
+{ label: 'Câmbio', content: (
+  <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Manual</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Automático</label>
+  </Box>
+) },
+{ label: 'Cor', content: (
+  <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Preto</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Branco</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Prata</label>
+  </Box>
+) },
+{ label: 'Combustível', content: (
+  <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Gasolina</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Diesel</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Flex</label>
+  </Box>
+) },
             { label: 'Final da placa', content: (
               <Box sx={{ p: 0, mb: 2 }}>
                 <Select
+                  fullWidth
                   displayEmpty
-                  value={placaFinalFiltro}
-                  onChange={e => setPlacaFinalFiltro(e.target.value)}
-                  sx={{
-                    width: '100%',
-                    borderRadius: 2,
-                    bgcolor: '#fafbfc',
-                    fontSize: 15,
-                    color: '#222',
-                    '.MuiOutlinedInput-notchedOutline': { border: '1px solid #e0e0e0' },
-                    height: 40,
-                    mt: 1, // Espaço acima
-                    mb: 0.5, // Espaço abaixo
-                    // px: 1, // Removido para não estourar a largura
-                  }}
+                  size="small"
+                  sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                  defaultValue=""
                   inputProps={{ 'aria-label': 'Final da placa' }}
-                  renderValue={selected => selected === '' ? '0-9' : selected}
                 >
                   <MenuItem value="">0-9</MenuItem>
                   {[...Array(10).keys()].map(n => (
-                    <MenuItem key={n} value={n.toString()}>{n}</MenuItem>
+                    <MenuItem key={n} value={n}>{n}</MenuItem>
                   ))}
                 </Select>
               </Box>
             ) },
-            { label: 'Blindagem', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Sim</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Não</label></Box> },
-            { label: 'Carroceria', content: <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Sedan</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> Hatch</label><label style={{ marginBottom: 0 }}><input type="checkbox" style={{ marginRight: 8 }} /> SUV</label></Box> },
+{ label: 'Blindagem', content: (
+  <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Sim</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Não</label>
+  </Box>
+) },
+{ label: 'Carroceria', content: (
+  <Box sx={{ p: 0, mb: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Sedan</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> Hatch</label>
+    <label style={{ marginBottom: 0, fontSize: 13, color: '#444', fontWeight: 400, display: 'flex', alignItems: 'center' }}><input type="checkbox" style={{ marginRight: 8 }} /> SUV</label>
+  </Box>
+) },
               
             ].map((filter, idx) => {
               const isAlwaysOpen = filter.label === 'Localização' || filter.label === 'Categoria' || filter.label === 'Preço';
+              const isOpen = isAlwaysOpen || openFilters[idx];
+              const handleToggle = () => {
+                if (isAlwaysOpen) return;
+                setOpenFilters(prev => ({ ...prev, [idx]: !prev[idx] }));
+              };
               return (
                 <Box key={filter.label} sx={{ borderBottom: '1px solid #eee', mb: 0.5 }}>
                   <Typography
                     variant="subtitle2"
                     sx={{ fontWeight: 500, cursor: isAlwaysOpen ? 'default' : 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', py: 1 }}
-                    onClick={isAlwaysOpen ? undefined : () => {
-                      const el = document.getElementById(`filter-content-${idx}`);
-                      el.style.display = el.style.display === 'none' ? 'block' : 'none';
-                    }}
+                    onClick={handleToggle}
                   >
                     {filter.label}
-                  {isAlwaysOpen ? null : (
-                    <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-                      <KeyboardArrowDownIcon sx={{ color: '#1D89FF', fontSize: 28 }} />
-                    </span>
-                  )}
+                    {isAlwaysOpen ? null : (
+                      <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', transition: 'transform 0.4s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                        <KeyboardArrowDownIcon sx={{ color: '#1D89FF', fontSize: 28 }} />
+                      </span>
+                    )}
                   </Typography>
-                  <Box id={`filter-content-${idx}`} sx={{ display: isAlwaysOpen ? 'block' : 'none' }}>{filter.content}</Box>
+                  <Box id={`filter-content-${idx}`} sx={{ display: isOpen ? 'block' : 'none' }}>{filter.content}</Box>
                 </Box>
               );
             })}
@@ -1162,13 +1626,40 @@ function App() {
               </Box>
             </Box>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5 }}>
-              {filteredVehicles.length === 0 ? (
+              {vehiclesPaginados.length === 0 ? (
                 <Typography variant="body1" sx={{ gridColumn: '1/-1', textAlign: 'center', color: '#888', mt: 4 }}>
                   Nenhum veículo encontrado.
                 </Typography>
               ) : (
-                filteredVehicles.map((v, idx) => (
-                  <Box key={v.brand + v.model + idx} sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                vehiclesPaginados.map((v, idx) => (
+                  <Box key={v.brand + v.model + idx} sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', p: 2, display: 'flex', flexDirection: 'column', gap: 1, position: 'relative' }}>
+                    {/* Tag 'Abaixo da Tabela' - canto superior esquerdo da imagem */}
+                    <Box sx={{
+                      position: 'absolute',
+                      top: 15,
+                      left: 20,
+                      zIndex: 3,
+                      pointerEvents: 'none',
+                    }}>
+                      <span style={{
+                        background: 'linear-gradient(90deg, #FF5A36 60%, #FFB36A 100%)',
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: 8,
+                        borderRadius: 7,
+                        padding: '4px 12px',
+                        boxShadow: '0 4px 16px rgba(255,90,54,0.13)',
+                        letterSpacing: 0.7,
+                        textTransform: 'uppercase',
+                        border: 'none',
+                        display: 'inline-block',
+                        lineHeight: 1.2,
+                        filter: 'drop-shadow(0 2px 4px rgba(255,90,54,0.13))',
+                        fontFamily: 'inherit',
+                      }}>
+                        Abaixo da Tabela
+                      </span>
+                    </Box>
                     <Box sx={{ height: 140, bgcolor: '#e0e0e0', borderRadius: 2, mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                       {v.photo ? (
                         <img
@@ -1184,18 +1675,46 @@ function App() {
                     {v.versao && (
                       <Typography variant="body2" sx={{ color: 'rgb(105, 105, 119)', fontWeight: 500, fontSize: 14, mb: 0.5, mt: '-4px' }}>{v.versao}</Typography>
                     )}
-                    <Typography variant="body2" sx={{ color: '#666', display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CalendarTodayIcon sx={{ fontSize: 16, color: '#888', mr: 0.5 }} />
-                      {v.year}
-                      <SpeedIcon sx={{ fontSize: 16, color: '#888', mr: 0.5, ml: 1 }} />
-                      {v.km} Km
-                    </Typography>
+<Box sx={{ display: 'flex', alignItems: 'center', color: '#666', fontSize: 13, gap: 1, mb: 0.5 }}>
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+    <CalendarTodayIcon sx={{ fontSize: 15, color: '#888', verticalAlign: 'middle', mr: 0.5 }} />
+    <span style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1.2, fontSize: '13px', fontWeight: 500 }}>{v.year}</span>
+  </Box>
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
+    <SpeedIcon sx={{ fontSize: 17, color: '#888', verticalAlign: 'middle', mr: 0.5 }} />
+    <span style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: 1.2, fontSize: '13px', fontWeight: 500 }}>
+      {v.category === 'maquina' ? `${v.km} horas de uso` : `${v.km} Km`}
+    </span>
+  </Box>
+</Box>
                     <Typography variant="body2" sx={{ color: '#888', fontSize: 14 }}>{v.location}</Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: '#1D89FF' }}>{v.displayPrice}</Typography>
                     <Button variant="contained" sx={{ bgcolor: '#1D89FF', color: '#fff', textTransform: 'none', mt: 1 }}>Ver oferta</Button>
                   </Box>
                 ))
               )}
+            </Box>
+            {/* Paginação */}
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <Pagination
+                count={totalPaginas}
+                page={paginaAtual}
+                onChange={(e, value) => setPaginaAtual(value)}
+                shape="rounded"
+                size="large"
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    fontWeight: 700,
+                    borderRadius: '50%',
+                  },
+                  '& .MuiPaginationItem-root.Mui-selected': {
+                    bgcolor: '#1D89FF',
+                    color: '#fff',
+                    borderRadius: '50%',
+                  },
+                }}
+              />
             </Box>
           </Box>
         </Box>
@@ -1204,11 +1723,11 @@ function App() {
       <Box component="footer" sx={{ mt: 10, py: 3, textAlign: 'center', bgcolor: '#f5f5f5' }}>
         <Typography variant="body2">© 2025 - Todos os direitos reservados</Typography>
       </Box>
+
     </>
   );
 }
 
-export default App;
 
 // Novo componente para botão do menu principal
 function MenuButton({ text, active }) {
@@ -1236,7 +1755,8 @@ function MenuButton({ text, active }) {
     </Button>
   );
 }
-function FadeMenu() {
+
+function FadeMenu({ setCategoriaSelecionada }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [hovering, setHovering] = React.useState(false);
   const open = Boolean(anchorEl);
@@ -1315,48 +1835,38 @@ function FadeMenu() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         transformOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <MenuItem onClick={handleClose} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
+        {/* ...outras opções... */}
+        <MenuItem onClick={() => { setCategoriaSelecionada('moto'); handleClose(); }} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
           <ListItemIcon sx={{ color: '#222', minWidth: 36 }}><TwoWheelerIcon fontSize="small" /></ListItemIcon>
           Moto
         </MenuItem>
-        <MenuItem onClick={handleClose} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
+        <MenuItem onClick={() => { setCategoriaSelecionada('carro'); handleClose(); }} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
           <ListItemIcon sx={{ color: '#222', minWidth: 36 }}><DirectionsCarIcon fontSize="small" /></ListItemIcon>
           Carro
         </MenuItem>
-        <MenuItem onClick={handleClose} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
+        <MenuItem onClick={() => { setCategoriaSelecionada('caminhonete'); handleClose(); }} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
           <ListItemIcon sx={{ color: '#222', minWidth: 36 }}><AirportShuttleIcon fontSize="small" /></ListItemIcon>
           Caminhonete
         </MenuItem>
-        <MenuItem onClick={handleClose} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
+        <MenuItem onClick={() => { setCategoriaSelecionada('utilitario'); handleClose(); }} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
           <ListItemIcon sx={{ color: '#222', minWidth: 36 }}><ConstructionIcon fontSize="small" /></ListItemIcon>
           Utilitário
         </MenuItem>
-        <MenuItem onClick={handleClose} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
+        <MenuItem onClick={() => { setCategoriaSelecionada('caminhao'); handleClose(); }} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
           <ListItemIcon sx={{ color: '#222', minWidth: 36 }}><LocalShippingIcon fontSize="small" /></ListItemIcon>
           Caminhão
         </MenuItem>
-        <MenuItem onClick={handleClose} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
+        <MenuItem onClick={() => { setCategoriaSelecionada('maquina'); handleClose(); }} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
           <ListItemIcon sx={{ color: '#222', minWidth: 36 }}><AgricultureIcon fontSize="small" /></ListItemIcon>
           Máquina
+        </MenuItem>
+        <MenuItem onClick={() => { setCategoriaSelecionada('todos'); handleClose(); }} sx={{ fontSize: 15, color: '#222', py: 2, px: 2, gap: 2, '&:hover': { bgcolor: '#f5f5f5' } }}>
+          <ListItemIcon sx={{ color: '#222', minWidth: 36 }}><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg></ListItemIcon>
+          Todos veículos
         </MenuItem>
       </Menu>
     </div>
   );
 }
 
-// Lista de veículos (mock)
-const vehicles = [
-  // ...coloque aqui os objetos de veículos já existentes...
-];
-
-// Lista de cidades para o autocomplete
-const cityOptions = [
-  // Exemplo de cidades, adicione conforme necessário
-  'São Paulo, SP',
-  'Curitiba, PR',
-  'Belo Horizonte, MG',
-  'Porto Alegre, RS',
-  'Jaú, SP',
-  'Americana, SP',
-  'Florianópolis, SC',
-];
+export default App;

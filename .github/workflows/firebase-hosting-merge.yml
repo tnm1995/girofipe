@@ -13,7 +13,7 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # Mude para a versão do Node.js que seu projeto usa
+          node-version: '20' # Mude para a versão do Node.js que seu projeto usa
 
       - name: Instalar dependências
         run: npm ci
@@ -27,3 +27,5 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_GIROFIPE }}'
           projectId: girofipe
+          channelId: live # <--- Adicione/descomente esta linha
+          # expires: 7d # Você pode remover esta linha se estiver deployando para 'live'
