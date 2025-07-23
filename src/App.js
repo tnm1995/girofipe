@@ -1870,3 +1870,4 @@ function FadeMenu({ setCategoriaSelecionada }) {
 }
 
 export default App;
+
