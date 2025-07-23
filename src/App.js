@@ -21,8 +21,6 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LoginIcon from '@mui/icons-material/Login';
 import Pagination from '@mui/material/Pagination';
-import Contato from './contato';
-import { Routes, Route } from 'react-router-dom';
 
 
 function App() {
